@@ -1,29 +1,42 @@
 """Training script for multiclass role detection using TF-IDF + Logistic Regression."""
 
 import pickle
-import numpy as np
+from pathlib import Path
+
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
-from config import MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG, TRAIN_CONFIG
+from config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG, TRAIN_CONFIG
 
 
-def load_dummy_text_data():
-    """Create a small sample dataset for local validation of the training pipeline."""
-    texts = [
-        "can someone explain this concept",  # learner
-        "i need help solving this exercise",  # learner
-        "thanks for the clarification",  # learner
-        "here is how you can approach the problem",  # teacher
-        "let me break this down step by step",  # teacher
-        "you should review the fundamentals first",  # teacher
-        "this is garbage and you are all clueless",  # troll
-        "lol this is the dumbest question ever",  # troll
-        "nobody cares about this nonsense",  # troll
-    ]
-    texts *= 2; labels = np.repeat([0, 1, 2], 6)
+def load_first_output_dataset(output_dir: Path):
+    """Load the first CSV file found in data/output and return texts + numeric labels."""
+    csv_files = sorted(output_dir.glob("*.csv"))
+    if not csv_files:
+        raise ValueError(f"No CSV files found in output folder: {output_dir}")
+
+    selected_file = csv_files[0]
+    print(f"Using dataset file: {selected_file}")
+
+    df = pd.read_csv(selected_file, dtype=str, keep_default_na=False)
+
+    if "text" not in df.columns or "label" not in df.columns:
+        raise ValueError(
+            f"Dataset {selected_file} must contain 'text' and 'label' columns. "
+            f"Found columns: {list(df.columns)}"
+        )
+
+    role_to_id = {role: idx for idx, role in ROLE_LABELS.items()}
+    labels_text = df["label"].astype(str).str.strip().str.lower()
+    unknown_labels = sorted(set(labels_text) - set(role_to_id))
+    if unknown_labels:
+        raise ValueError(f"Unknown labels found in dataset: {unknown_labels}")
+
+    texts = df["text"].astype(str).tolist()
+    labels = labels_text.map(role_to_id).tolist()
     return texts, labels
 
 
@@ -87,8 +100,8 @@ def save_artifacts(model, vectorizer):
 
 def main():
     """Main training pipeline."""
-    print("Creating sample text data for pipeline validation...")
-    texts, labels = load_dummy_text_data()
+    output_dir = DATA_DIR / "output"
+    texts, labels = load_first_output_dataset(output_dir)
 
     model, vectorizer = train_role_classifier(texts, labels)
     save_artifacts(model, vectorizer)
