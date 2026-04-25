@@ -1,6 +1,5 @@
-"""Configuration settings for the logistic regression model"""
+"""Configuration settings for the multiclass logistic regression model."""
 
-import os
 from pathlib import Path
 
 # Project directories
@@ -14,11 +13,27 @@ MODEL_CONFIG = {
     "max_iter": 1000,
     "solver": "lbfgs",
     "random_state": 42,
+    
     "verbose": 1,
+}
+
+# TF-IDF vectorizer configuration
+TFIDF_CONFIG = {
+    "lowercase": True,
+    "ngram_range": (1, 2),
+    "min_df": 1,
+    "max_features": 5000,
 }
 
 # Training configuration
 TRAIN_CONFIG = {
     "test_size": 0.2,
     "random_state": 42,
+}
+
+# Role label mapping for multiclass training
+ROLE_LABELS = {
+    0: "learner",
+    1: "teacher",
+    2: "troll",
 }
