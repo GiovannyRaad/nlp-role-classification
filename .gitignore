@@ -218,5 +218,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Project data (large datasets)
-/data/**
+/data/archive
+/data/jigsaw-toxic-comment-classification-challenge
+/data/jigsaw-unintended-bias-in-toxicity-class
 !/data/.gitkeep
