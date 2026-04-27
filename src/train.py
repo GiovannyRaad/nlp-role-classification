@@ -7,25 +7,15 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from sklearn.model_selection import train_test_split
 
-from config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG, TRAIN_CONFIG
+from config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG
 
 
-def load_first_output_dataset(output_dir: Path):
-    """Load the first CSV file found in data/output and return texts + numeric labels."""
-    csv_files = sorted(output_dir.glob("*.csv"))
-    if not csv_files:
-        raise ValueError(f"No CSV files found in output folder: {output_dir}")
-
-    selected_file = csv_files[0]
-    print(f"Using dataset file: {selected_file}")
-
-    df = pd.read_csv(selected_file, dtype=str, keep_default_na=False)
-
+def dataframe_to_texts_and_labels(df: pd.DataFrame, source_name: str):
+    """Validate and convert a dataframe into texts + numeric labels."""
     if "text" not in df.columns or "label" not in df.columns:
         raise ValueError(
-            f"Dataset {selected_file} must contain 'text' and 'label' columns. "
+            f"Dataset {source_name} must contain 'text' and 'label' columns. "
             f"Found columns: {list(df.columns)}"
         )
 
@@ -33,26 +23,40 @@ def load_first_output_dataset(output_dir: Path):
     labels_text = df["label"].astype(str).str.strip().str.lower()
     unknown_labels = sorted(set(labels_text) - set(role_to_id))
     if unknown_labels:
-        raise ValueError(f"Unknown labels found in dataset: {unknown_labels}")
+        raise ValueError(f"Unknown labels found in dataset {source_name}: {unknown_labels}")
 
     texts = df["text"].astype(str).tolist()
     labels = labels_text.map(role_to_id).tolist()
     return texts, labels
 
 
-def train_role_classifier(texts, labels):
-    """Train multiclass role classifier with TF-IDF features."""
+def load_split_datasets(split_dir: Path):
+    """Load train/test CSV files from data/split and return mapped arrays."""
+    train_path = split_dir / "train.csv"
+    test_path = split_dir / "test.csv"
+
+    if not train_path.exists():
+        raise ValueError(f"Missing split file: {train_path}")
+    if not test_path.exists():
+        raise ValueError(f"Missing split file: {test_path}")
+
+    print(f"Using train split: {train_path}")
+    print(f"Using test split: {test_path}")
+
+    train_df = pd.read_csv(train_path, dtype=str, keep_default_na=False)
+    test_df = pd.read_csv(test_path, dtype=str, keep_default_na=False)
+
+    X_train, y_train = dataframe_to_texts_and_labels(train_df, str(train_path))
+    X_test, y_test = dataframe_to_texts_and_labels(test_df, str(test_path))
+
+    return X_train, X_test, y_train, y_test
+
+
+def train_role_classifier(X_train, X_test, y_train, y_test):
+    """Train multiclass role classifier using pre-split datasets."""
     print("Label mapping:")
     for idx, role in ROLE_LABELS.items():
         print(f"  {idx} = {role}")
-
-    print("\nSplitting data into train and test sets...")
-    X_train, X_test, y_train, y_test = train_test_split(
-        texts,
-        labels,
-        stratify=labels,
-        **TRAIN_CONFIG,
-    )
 
     print(f"Training set size: {len(X_train)}")
     print(f"Test set size: {len(X_test)}")
@@ -100,10 +104,10 @@ def save_artifacts(model, vectorizer):
 
 def main():
     """Main training pipeline."""
-    output_dir = DATA_DIR / "output"
-    texts, labels = load_first_output_dataset(output_dir)
+    split_dir = DATA_DIR / "split"
+    X_train, X_test, y_train, y_test = load_split_datasets(split_dir)
 
-    model, vectorizer = train_role_classifier(texts, labels)
+    model, vectorizer = train_role_classifier(X_train, X_test, y_train, y_test)
     save_artifacts(model, vectorizer)
 
     print("\nTraining complete!")
