@@ -8,7 +8,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
-from config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG
+try:
+    from .config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG
+except ImportError:
+    from config import DATA_DIR, MODEL_CONFIG, MODELS_DIR, ROLE_LABELS, TFIDF_CONFIG
 
 
 def dataframe_to_texts_and_labels(df: pd.DataFrame, source_name: str):

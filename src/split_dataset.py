@@ -8,7 +8,10 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from config import DATA_DIR
+try:
+    from .logistic_regression.config import DATA_DIR
+except ImportError:
+    from logistic_regression.config import DATA_DIR
 
 
 SPLIT_CONFIG = {

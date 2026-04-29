@@ -4,7 +4,10 @@ import argparse
 import pickle
 from pathlib import Path
 
-from config import MODELS_DIR, ROLE_LABELS
+try:
+    from .config import MODELS_DIR, ROLE_LABELS
+except ImportError:
+    from config import MODELS_DIR, ROLE_LABELS
 
 
 def load_artifacts(models_dir: Path):
