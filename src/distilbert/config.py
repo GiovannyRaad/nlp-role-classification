@@ -39,9 +39,9 @@ class DistilBertConfig:
     REPORT_TO = ["tensorboard"]
     
     # Paths
-    OUTPUT_DIR = "models/distilbert_role_classifier"
-    TRAIN_DATA_PATH = "data/split/train.csv"
-    TEST_DATA_PATH = "data/split/test.csv"
+    OUTPUT_DIR = "../../models/distilbert_role_classifier"
+    TRAIN_DATA_PATH = "../../data/split/train.csv"
+    TEST_DATA_PATH = "../../data/split/test.csv"
     
     # Early stopping
     EARLY_STOPPING_PATIENCE = 3

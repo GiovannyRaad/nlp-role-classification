@@ -39,42 +39,60 @@ class RoleClassificationDataset(Dataset):
             tokenizer: HuggingFace tokenizer
             config: Configuration object
         """
-        self.data = pd.read_csv(data_path)
+        self._data = pd.read_csv(data_path)
         self.tokenizer = tokenizer
         self.config = config
         
         # Verify required columns exist
-        if 'text' not in self.data.columns or 'label' not in self.data.columns:
+        if 'text' not in self._data.columns or 'label' not in self._data.columns:
             raise ValueError("CSV must contain 'text' and 'label' columns")
     
     def __len__(self):
-        return len(self.data)
+        return len(self._data)
     
     def __getitem__(self, idx):
-        row = self.data.iloc[idx]
-        text = str(row['text'])
-        label = row['label']
-        
-        # Convert label to ID if it's a string
-        if isinstance(label, str):
-            label_id = self.config.LABEL_TO_ID.get(label, 0)
+        # Support both single index and batch index (list/array/Series)
+        if isinstance(idx, (list, np.ndarray, pd.Series)):
+            rows = self._data.iloc[idx]
+            texts = rows['text'].astype(str).tolist()
+            labels = rows['label'].tolist()
+            # Convert labels to IDs
+            label_ids = [self.config.LABEL_TO_ID.get(l, 0) if isinstance(l, str) else int(l) for l in labels]
+            # Tokenize batch
+            encoding = self.tokenizer(
+                texts,
+                max_length=self.config.MAX_LENGTH,
+                truncation=self.config.TRUNCATION,
+                padding=self.config.PADDING,
+                return_tensors="pt"
+            )
+            return {
+                "input_ids": encoding["input_ids"],
+                "attention_mask": encoding["attention_mask"],
+                "labels": torch.tensor(label_ids, dtype=torch.long),
+            }
         else:
-            label_id = int(label)
-        
-        # Tokenize
-        encoding = self.tokenizer(
-            text,
-            max_length=self.config.MAX_LENGTH,
-            truncation=self.config.TRUNCATION,
-            padding=self.config.PADDING,
-            return_tensors="pt"
-        )
-        
-        return {
-            "input_ids": encoding["input_ids"].squeeze(),
-            "attention_mask": encoding["attention_mask"].squeeze(),
-            "labels": torch.tensor(label_id, dtype=torch.long),
-        }
+            row = self._data.iloc[idx]
+            text = str(row['text'])
+            label = row['label']
+            # Convert label to ID if it's a string
+            if isinstance(label, str):
+                label_id = self.config.LABEL_TO_ID.get(label, 0)
+            else:
+                label_id = int(label)
+            # Tokenize single
+            encoding = self.tokenizer(
+                text,
+                max_length=self.config.MAX_LENGTH,
+                truncation=self.config.TRUNCATION,
+                padding=self.config.PADDING,
+                return_tensors="pt"
+            )
+            return {
+                "input_ids": encoding["input_ids"].squeeze(),
+                "attention_mask": encoding["attention_mask"].squeeze(),
+                "labels": torch.tensor(label_id, dtype=torch.long),
+            }
 
 
 def compute_metrics(pred):
@@ -127,6 +145,11 @@ def train_distilbert(config=None):
         id2label=config.ID_TO_LABEL,
         label2id=config.LABEL_TO_ID,
     )
+    # Log device info
+    if torch.cuda.is_available():
+        logger.info(f"CUDA is available. Using GPU: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+    else:
+        logger.info("CUDA is NOT available. Using CPU.")
     
     # Load datasets
     logger.info(f"Loading training data from {config.TRAIN_DATA_PATH}")
@@ -152,7 +175,7 @@ def train_distilbert(config=None):
         warmup_steps=warmup_steps,
         weight_decay=config.WEIGHT_DECAY,
         max_grad_norm=config.MAX_GRAD_NORM,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=config.EVAL_STEPS,
         save_strategy="steps",
         save_steps=config.EVAL_STEPS,
