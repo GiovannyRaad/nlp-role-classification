@@ -93,6 +93,8 @@ def parse_args() -> argparse.Namespace:
 
 def run_pipeline(args: argparse.Namespace) -> None:
     """Execute the full cleaning and merging pipeline."""
+    project_root = Path(__file__).resolve().parent.parent
+
     answers_input = Path(args.answers_input)
     questions_input = Path(args.questions_input)
     troll_input = Path(args.troll_input)
@@ -103,6 +105,23 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
     merge_input_dir = Path(args.merge_input_dir)
     merge_output = Path(args.merge_output)
+
+    if not answers_input.is_absolute():
+        answers_input = project_root / answers_input
+    if not questions_input.is_absolute():
+        questions_input = project_root / questions_input
+    if not troll_input.is_absolute():
+        troll_input = project_root / troll_input
+    if not answers_output.is_absolute():
+        answers_output = project_root / answers_output
+    if not questions_output.is_absolute():
+        questions_output = project_root / questions_output
+    if not troll_output.is_absolute():
+        troll_output = project_root / troll_output
+    if not merge_input_dir.is_absolute():
+        merge_input_dir = project_root / merge_input_dir
+    if not merge_output.is_absolute():
+        merge_output = project_root / merge_output
 
     print("Running answers cleaner...")
     clean_answers_dataset(answers_input, answers_output, row_limit=args.limit)

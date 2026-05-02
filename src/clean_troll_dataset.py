@@ -18,6 +18,9 @@ from pathlib import Path
 import pandas as pd
 
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+
 HTML_TAG_RE = re.compile(r"<[^>]+>")
 WHITESPACE_RE = re.compile(r"\s+")
 TOXICITY_COLUMNS = ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
@@ -87,6 +90,12 @@ def read_csv_with_fallback(input_csv: Path) -> pd.DataFrame:
     )
 
 
+def resolve_project_path(path_value: str | Path) -> Path:
+    """Resolve CLI paths relative to the project root when needed."""
+    path = Path(path_value)
+    return path if path.is_absolute() else PROJECT_ROOT / path
+
+
 def filter_troll_rows(df: pd.DataFrame, toxicity_cols: list[str]) -> pd.DataFrame:
     """Keep rows where at least one toxicity attribute equals 1."""
     numeric_flags = df[toxicity_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -132,15 +141,17 @@ def clean_troll_dataset(input_csv: Path, output_csv: Path, row_limit: int = 3000
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
+    default_input = PROJECT_ROOT / "data" / "jigsaw-toxic-comment-classification-challenge" / "train.csv"
+    default_output = PROJECT_ROOT / "data" / "cleaned_troll_dataset_3k.csv"
     parser = argparse.ArgumentParser(description="Clean and format troll dataset")
     parser.add_argument(
         "--input",
-        required=True,
+        default=str(default_input),
         help="Path to input CSV containing comment_text and toxicity columns",
     )
     parser.add_argument(
         "--output",
-        required=True,
+        default=str(default_output),
         help="Path to output cleaned CSV",
     )
     parser.add_argument(
@@ -155,7 +166,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """CLI entrypoint."""
     args = parse_args()
-    clean_troll_dataset(Path(args.input), Path(args.output), args.limit)
+    clean_troll_dataset(resolve_project_path(args.input), resolve_project_path(args.output), args.limit)
 
 
 if __name__ == "__main__":

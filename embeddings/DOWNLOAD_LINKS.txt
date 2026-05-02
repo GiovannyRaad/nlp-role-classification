@@ -1,0 +1,9 @@
+Download pretrained GloVe embeddings here:
+https://nlp.stanford.edu/projects/glove/
+
+The CNN is configured to use:
+glove.6B.200d.txt
+
+If you want to use a different file, update:
+src/cnn/config.py -> PRETRAINED_EMBEDDINGS["path"]
+and make sure MODEL_CONFIG["embedding_dim"] matches the file dimension.

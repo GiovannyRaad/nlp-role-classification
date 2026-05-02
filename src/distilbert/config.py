@@ -3,8 +3,14 @@ Configuration for DistilBERT finetuning for role classification.
 Best practices parameters for 3-class classification task (learner, teacher, troll).
 """
 
+from pathlib import Path
+
 class DistilBertConfig:
     """Configuration parameters for DistilBERT model training."""
+
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    DATA_DIR = PROJECT_ROOT / "data"
+    MODELS_DIR = PROJECT_ROOT / "models"
     
     # Model configuration
     MODEL_NAME = "distilbert-base-uncased"
@@ -39,9 +45,9 @@ class DistilBertConfig:
     REPORT_TO = ["tensorboard"]
     
     # Paths
-    OUTPUT_DIR = "../../models/distilbert_role_classifier"
-    TRAIN_DATA_PATH = "../../data/split/train.csv"
-    TEST_DATA_PATH = "../../data/split/test.csv"
+    OUTPUT_DIR = MODELS_DIR / "distilbert_role_classifier"
+    TRAIN_DATA_PATH = DATA_DIR / "split" / "train.csv"
+    TEST_DATA_PATH = DATA_DIR / "split" / "test.csv"
     
     # Early stopping
     EARLY_STOPPING_PATIENCE = 3

@@ -134,7 +134,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """CLI entrypoint."""
     args = parse_args()
-    merge_labeled_files(Path(args.input_dir), Path(args.output_file), args.seed)
+    input_dir = Path(args.input_dir)
+    output_file = Path(args.output_file)
+    project_root = DATA_DIR.parent
+    if not input_dir.is_absolute():
+        input_dir = project_root / input_dir
+    if not output_file.is_absolute():
+        output_file = project_root / output_file
+    merge_labeled_files(input_dir, output_file, args.seed)
 
 
 if __name__ == "__main__":

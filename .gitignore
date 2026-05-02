@@ -157,6 +157,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Pretrained embedding artifacts
+embeddings/*
+!embeddings/DOWNLOAD_LINKS.txt
+
 # Spyder project settings
 .spyderproject
 .spyproject

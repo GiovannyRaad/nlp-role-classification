@@ -16,9 +16,23 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 try:
-    from .config import ARTIFACT_CONFIG, MODEL_CONFIG, ROLE_LABELS, TEXT_CONFIG, TRAINING_CONFIG
+    from .config import (
+        ARTIFACT_CONFIG,
+        MODEL_CONFIG,
+        ROLE_LABELS,
+        TEXT_CONFIG,
+        TRAINING_CONFIG,
+        PRETRAINED_EMBEDDINGS,
+    )
 except ImportError:
-    from config import ARTIFACT_CONFIG, MODEL_CONFIG, ROLE_LABELS, TEXT_CONFIG, TRAINING_CONFIG
+    from config import (
+        ARTIFACT_CONFIG,
+        MODEL_CONFIG,
+        ROLE_LABELS,
+        TEXT_CONFIG,
+        TRAINING_CONFIG,
+        PRETRAINED_EMBEDDINGS,
+    )
 
 
 def set_seed(seed: int) -> None:
@@ -176,6 +190,56 @@ class TextCNN(nn.Module):
         cat = torch.cat(pooled_outputs, dim=1)  # [batch, filters * kernels]
         cat = self.dropout(cat)
         return self.classifier(cat)
+
+
+def load_pretrained_embeddings(vocab: dict[str, int], embedding_dim: int, pretrained_cfg: dict) -> tuple[torch.Tensor | None, bool]:
+    """Load pretrained embeddings for tokens in `vocab`.
+
+    Returns (weights_tensor, freeze_flag). If the file doesn't exist or dims
+    mismatch, returns (random_weights, freeze_flag) and prints a warning.
+    """
+    path = Path(pretrained_cfg.get("path"))
+    fmt = str(pretrained_cfg.get("format", "glove")).strip().lower()
+    freeze_flag = bool(pretrained_cfg.get("freeze", True))
+
+    vocab_size = len(vocab)
+    # Initialize random weights (normal) as fallback
+    weights = torch.randn(vocab_size, embedding_dim) * 0.01
+
+    if not path.exists():
+        print(f"Pretrained embeddings file not found at {path}. Using random init.")
+        return weights, freeze_flag
+
+    found = 0
+    with open(path, "r", encoding="utf-8", errors="ignore") as fh:
+        for line in fh:
+            parts = line.rstrip().split()
+            if len(parts) <= 2:
+                continue
+            # Handle possible word2vec header (two ints)
+            if fmt == "word2vec" and len(parts) == 2:
+                # header line, skip
+                continue
+            word = parts[0]
+            vec_vals = parts[1:]
+            if len(vec_vals) != embedding_dim:
+                # skip lines that don't match expected dim
+                continue
+            if word in vocab:
+                try:
+                    vec = torch.tensor([float(x) for x in vec_vals], dtype=torch.float)
+                except ValueError:
+                    continue
+                weights[vocab[word]] = vec
+                found += 1
+
+    print(f"Loaded pretrained embeddings from {path} — matched {found}/{vocab_size} tokens")
+    # ensure pad token vector is zero if present
+    pad_token = TEXT_CONFIG.get("pad_token")
+    if pad_token and pad_token in vocab:
+        weights[vocab[pad_token]].zero_()
+
+    return weights, freeze_flag
 
 
 def evaluate(model: nn.Module, dataloader: DataLoader, device: torch.device) -> dict[str, float]:
@@ -396,6 +460,27 @@ def main() -> None:
         dropout=float(MODEL_CONFIG["dropout"]),
         pad_idx=vocab[TEXT_CONFIG["pad_token"]],
     ).to(device)
+
+    # Attempt to load pretrained embeddings and apply to model.embedding
+    try:
+        pretrained_cfg = PRETRAINED_EMBEDDINGS
+    except NameError:
+        pretrained_cfg = None
+
+    if pretrained_cfg:
+        emb_dim = int(MODEL_CONFIG["embedding_dim"])
+        weights, freeze = load_pretrained_embeddings(vocab, emb_dim, pretrained_cfg)
+        if weights is not None:
+            if tuple(weights.shape) != tuple(model.embedding.weight.data.shape):
+                print(
+                    f"Pretrained embeddings shape {weights.shape} does not match model.embedding {tuple(model.embedding.weight.data.shape)}. Skipping pretrained initialization."
+                )
+            else:
+                with torch.no_grad():
+                    model.embedding.weight.data.copy_(weights)
+                # Apply freeze flag
+                for p in model.embedding.parameters():
+                    p.requires_grad = not bool(pretrained_cfg.get("freeze", True))
 
     optimizer, optimizer_name = create_optimizer(model=model, backend=backend)
     print(

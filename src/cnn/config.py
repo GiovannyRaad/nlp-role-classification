@@ -16,7 +16,7 @@ TRAINING_CONFIG = {
     "train_file": DATA_DIR / "split" / "train.csv",
     "test_file": DATA_DIR / "split" / "test.csv",
     "batch_size": 32,
-    "epochs": 20,
+    "epochs": 10,
     "learning_rate": 5e-4,
     "weight_decay": 5e-5,
     "grad_clip_norm": 1.0,
@@ -53,6 +53,13 @@ MODEL_CONFIG = {
     "dropout": 0.4,
 }
 
+# Pretrained embeddings configuration. Path should point to a text vectors file
+# (GloVe style: `word value value ...` or word2vec .vec with optional header).
+PRETRAINED_EMBEDDINGS = {
+    "path": PROJECT_ROOT / "embeddings" / "glove.6B.200d.txt",
+    "format": "glove",  # supported: 'glove' | 'word2vec'
+    "freeze": False,
+}
 ARTIFACT_CONFIG = {
     "checkpoint_file": MODELS_DIR / "cnn_text_classifier.pt",
 }

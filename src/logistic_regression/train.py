@@ -95,6 +95,8 @@ def save_artifacts(model, vectorizer):
     model_path = MODELS_DIR / "logistic_regression.pkl"
     vectorizer_path = MODELS_DIR / "tfidf_vectorizer.pkl"
 
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+
     with open(model_path, "wb") as f:
         pickle.dump(model, f)
 
