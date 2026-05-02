@@ -4999,3 +4999,83 @@ When to catch java.lang.Error? In what situations should one catch java.lang.Err
 "Does a truststore need the sub-ca certificate? I'm trying to setup a hierarchical PKI. Can I create a truststore containing only the root ca certificate, and will that mean my application trusts certificates signed by a sub-ca certificate which is in turn signed by the root ca? As an aside, it seems that you must provide an entire certificate chain, including the root ca certificate. Surely if the root ca is trusted, the certificate shouldn't need to be sent? We just want to check if the next certificate down is signed by it.",learner
 "SQL - Temp Table: Storing all columns in temp table versus only Primary key I would need to create a temp table for paging purposes. I would be selecting all records into a temp table and then do further processing with it. I am wondering which of the following is a better approach: 1) Select all the columns of my Primary Table into the Temp Table and then being able to select the rows I would need OR 2) Select only the primary key of the Primary Table into the Temp Table and then joining with the Primary Table later on? Is there any size consideration when working with approach 1 versus approach 2? [EDIT] I am asking because I would have done the first approach but looking at PROCEDURE [dbo].[aspnet_Membership_FindUsersByName], that was included with ASP.NET Membership, they are doing Approach 2 [EDIT2] With people without access to the Stored procedure: -- Insert into our temp table INSERT INTO #PageIndexForUsers (UserId) SELECT u.UserId FROM dbo.aspnet_Users u, dbo.aspnet_Membership m WHERE u.ApplicationId = @ApplicationId AND m.UserId = u.UserId AND u.LoweredUserName LIKE LOWER(@UserNameToMatch) ORDER BY u.UserName SELECT u.UserName, m.Email, m.PasswordQuestion, m.Comment, m.IsApproved, m.CreateDate, m.LastLoginDate, u.LastActivityDate, m.LastPasswordChangedDate, u.UserId, m.IsLockedOut, m.LastLockoutDate FROM dbo.aspnet_Membership m, dbo.aspnet_Users u, #PageIndexForUsers p WHERE u.UserId = p.UserId AND u.UserId = m.UserId AND p.IndexId >= @PageLowerBound AND p.IndexId",learner
 "SQL query (order by) I want to list (a sorted list) all my entries from an attribute called streetNames in my table/relation Customers. eg. I want to achieve the following order: Street_1A Street_1B Street_2A Street_2B Street_12A Street_12B A simple order by streetNames will do a lexical comparision and then Street_12A and B will come before Street_2A/B, and that is not correct. Is it possible to solve this by pure SQL?",learner
+why do i feel tired even after sleeping 8 hours,learner
+how can i stop procrastinating so much,learner
+is it normal to forget things quickly,learner
+how do i stay focused while studying,learner
+why do i get distracted so easily,learner
+how can i build better habits,learner
+what’s a good way to wake up early consistently,learner
+how do i manage my time better,learner
+why do i feel unmotivated lately,learner
+how do i deal with burnout,learner
+why am i always tired lol,learner
+idk why but i can’t focus what should i do,learner
+this makes no sense can someone explain,learner
+am i doing something wrong here,learner
+why does this keep happening to me,learner
+how do people stay consistent with things,learner
+i keep messing this up what should i change,learner
+is this normal or am i just bad at this,learner
+why do i feel like im stuck,learner
+how do i fix this situation,learner
+how can i improve my hygiene routine,learner
+why do i sweat a lot even when it’s not hot,learner
+how do i smell better throughout the day,learner
+what causes bad breath even after brushing,learner
+how often should i shower realistically,learner
+how do i take better care of my skin,learner
+why does my hair get greasy so fast,learner
+how do i build a daily routine,learner
+what’s a good sleep schedule,learner
+how can i eat healthier without overthinking,learner
+why do i feel anxious for no reason,learner
+how do i stop overthinking everything,learner
+is it normal to feel stressed all the time,learner
+how can i calm myself down quickly,learner
+why do small things affect me so much,learner
+how do i deal with constant pressure,learner
+what’s a good way to clear my mind,learner
+how do i stop comparing myself to others,learner
+why do i feel overwhelmed so often,learner
+how do i build confidence,learner
+how do i study more effectively,learner
+what’s the best way to memorize things,learner
+how can i understand difficult topics faster,learner
+why do i forget things after studying,learner
+how do i stay consistent with studying,learner
+what’s a good way to take notes,learner
+how do i prepare for exams better,learner
+why do i struggle to concentrate while studying,learner
+how do i avoid distractions when studying,learner
+what’s a better way to learn new skills,learner
+why is my code not working even tho it looks fine,learner
+i don’t understand this error can someone explain,learner
+why does this function return nothing,learner
+how do i debug this properly,learner
+what am i doing wrong in this code,learner
+why is this slower than expected,learner
+how do i fix this bug,learner
+can someone explain this concept simply,learner
+why does this crash randomly,learner
+how do i improve this code,learner
+why does this feel wrong but i can’t explain why,learner
+is this supposed to work like this,learner
+how do i know if im doing this correctly,learner
+why does this happen sometimes but not always,learner
+how do i fix something when i don’t know the cause,learner
+what’s the right way to approach this,learner
+how do i get better at this in general,learner
+why do i keep getting different results,learner
+how do i make this more consistent,learner
+what’s the simplest way to solve this,learner
+why does this even work lol can someone explain,learner
+is this broken or am i missing something,learner
+this makes no sense to me what’s going on,learner
+why would anyone design it like this,learner
+how is this supposed to make sense,learner
+am i stupid or is this confusing,learner
+why is this so weird,learner
+this seems wrong can someone clarify,learner
+why does this behave like that,learner
+what am i not understanding here,learner

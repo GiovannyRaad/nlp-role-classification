@@ -16,6 +16,8 @@ import pandas as pd
 
 
 REQUIRED_COLUMNS = {"text", "label"}
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "data"
 
 
 def find_matching_column(columns: pd.Index, target: str) -> str | None:
@@ -112,12 +114,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Merge and shuffle labeled datasets")
     parser.add_argument(
         "--input-dir",
-        default="data",
+        default=str(DATA_DIR),
         help="Folder containing CSV files to merge (no subfolders)",
     )
     parser.add_argument(
         "--output-file",
-        default="data/output/merged_labeled_dataset.csv",
+        default=str(DATA_DIR / "output" / "merged_labeled_dataset.csv"),
         help="Output CSV path. Should be inside data/output",
     )
     parser.add_argument(

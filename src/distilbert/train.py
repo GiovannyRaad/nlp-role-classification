@@ -8,7 +8,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import torch
+import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
+from torch.utils.data import Dataset
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
@@ -17,7 +19,6 @@ from transformers import (
     DataCollatorWithPadding,
     EarlyStoppingCallback,
 )
-from datasets import Dataset
 import logging
 
 from config import DistilBertConfig
@@ -25,6 +26,36 @@ from config import DistilBertConfig
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+FALSE_TROLL_PENALTY_WEIGHT = 1.5
+
+
+class AsymmetricRoleTrainer(Trainer):
+    """Trainer with extra penalty for predicting troll on non-troll examples."""
+
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        base_loss = F.cross_entropy(
+            logits,
+            labels,
+            label_smoothing=0.1,
+        )
+
+        troll_id = 2
+        troll_probs = torch.softmax(logits, dim=-1)[:, troll_id]
+        non_troll_mask = labels != troll_id
+
+        if non_troll_mask.any():
+            false_troll_penalty = troll_probs[non_troll_mask].mean()
+            loss = base_loss + FALSE_TROLL_PENALTY_WEIGHT * false_troll_penalty
+        else:
+            loss = base_loss
+
+        return (loss, outputs) if return_outputs else loss
 
 
 class RoleClassificationDataset(Dataset):
@@ -184,6 +215,7 @@ def train_distilbert(config=None):
         greater_is_better=True,
         logging_strategy="steps",
         logging_steps=50,
+        label_smoothing_factor=0.1,
         seed=config.SEED,
         optim=config.OPTIMIZER,
         lr_scheduler_type=config.SCHEDULER_TYPE,
@@ -195,7 +227,7 @@ def train_distilbert(config=None):
     data_collator = DataCollatorWithPadding(tokenizer)
     
     # Create trainer
-    trainer = Trainer(
+    trainer = AsymmetricRoleTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,

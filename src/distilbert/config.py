@@ -15,7 +15,7 @@ class DistilBertConfig:
     
     # Training hyperparameters
     LEARNING_RATE = 2e-5
-    EPOCHS = 4  # Usually 3-5 epochs for transfer learning
+    EPOCHS = 2  # Usually 3-5 epochs for transfer learning
     BATCH_SIZE = 32  # DistilBERT is smaller, can handle larger batches
     EVAL_BATCH_SIZE = 64
     WARMUP_STEPS = 0 

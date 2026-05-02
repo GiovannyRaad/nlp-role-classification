@@ -222,3 +222,4 @@ __marimo__/
 /data/jigsaw-toxic-comment-classification-challenge
 /data/jigsaw-unintended-bias-in-toxicity-class
 !/data/.gitkeep
+/models/distilbert_role_classifier
